@@ -1,0 +1,95 @@
+﻿
+@{
+    ViewBag.Title = "Auctions List";
+}
+
+<div class="table-responsive">
+    <table class="table table-sm table-hover table-striped table-bordered w-100 " id="AuctionList">
+        <thead>
+            <tr>
+                @*<th>ID</th>*@
+                <th>Name</th>
+                <th>Image</th>
+                <th>Start Price</th>
+                @*<th>CreateDate</th>*@
+                <th>End Date</th>
+                <th>Description</th>
+                <th> </th>
+
+            </tr>
+        </thead>
+
+    </table>
+</div>
+@section scripts {
+
+    <script>
+
+
+
+        //$(document).ready(function () {
+
+            $('#AuctionList').DataTable({
+                stateSave: true,
+                info: false,
+                lengthChange: false,
+                responsive: {
+                    details: true
+                },
+                ajax: {
+                    url: '/api/Auctions',
+                    dataSrc: ''
+                },
+                columns: [
+                    //{ data: 'ID', orderable: false, searchable: false },
+                    { data: 'Name', orderable: false },
+                    {
+                        orderable: false, searchable: false,
+                        data: null, render: function (data, type, row) {
+                            var img = "<img src='" + data.Image + "' class='img-fluid img-thumbnail imgfull' style='height:75px;object-fit: cover; width:75px' />";
+                            return img;
+                        }
+                    },
+                    { data: 'Price', searchable: false },
+                    //{ data: 'CreateDate', orderable: false, searchable: false   },
+                    { data: 'EndDate', orderable: false, searchable: false },
+                    { data: 'Description', orderable: false },
+                    {
+                        orderable: false, searchable: false,
+                        data: null, render: function (data, type, row) {
+                             var url = '@Url.Action("AuctionDetails", "Home", new { AuctionID = "__id__" })';
+                            return "<a class='btn btn-success btn-sm' href='" + url.replace('__id__', data.ID)+"'>Bid Now</a>";
+                        }
+                    },
+                ],
+                language: {
+                    "search": "",
+                },
+                initComplete: function (settings, json) {
+                    $(".dataTables_filter").parent().attr("class", "col-12 p-0");
+                    $(".dataTables_filter").children().addClass("w-100 p-1 input-group mb-2");
+                    $("<span class='input-group-text' id='basic-addon1'><i class='fas fa-search'></i></span>").insertBefore($(".dataTables_filter").children().children());
+                    $(".dataTables_filter").children().children().attr("placeholder", "Search");
+                    $(".dataTables_filter").children().children().addClass("m-0");
+                    $(".dataTables_filter").children().children().removeClass("form-control-sm");
+
+                    $("ul.dtr-details>li").addClass("d-flex justify-content-between");
+
+
+
+                    $(".imgfull").click(function () {
+                        document.getElementById("modalimage").src = this.src;
+
+                        $('#ImageManifier').modal('show');
+                    });
+                 }
+
+            });
+
+        //});
+
+
+
+
+    </script>
+}

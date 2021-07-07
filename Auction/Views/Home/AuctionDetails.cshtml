@@ -1,0 +1,237 @@
+﻿
+@{
+    ViewBag.Title = "Auction Details";
+}
+
+<style>
+    table td, table th {
+        text-align: start !important;
+        vertical-align: top;
+    }
+</style>
+
+<!--Section: Block Content-->
+<section class="mt-5">
+
+    <div class="row">
+        <div class="col-md-6 mb-4 mb-md-0">
+
+            <img class='img-fluid img-thumbnail rounded imgfull w-100' id="AuctionImage" src='' alt='' style='object-fit: cover; height: 332px' />
+
+        </div>
+        <div class="col-md-6">
+
+            <h3 id="AuctionName"></h3>
+
+            <hr />
+
+            <div class="table-responsive">
+                <table class="table text-start table-borderless mb-0">
+                    <tbody>
+                        <tr>
+                            <td class="" scope="row">
+                                <strong>Start Price</strong>
+                            </td>
+                            <td class="w-75" id="AuctionPrice"> </td>
+                        </tr>
+                        <tr>
+                            <td class="" scope="row">
+                                <strong>Start Date</strong>
+                            </td>
+                            <td id="AuctionCreateDate"></td>
+                        </tr>
+                        <tr>
+                            <td class="" scope="row">
+                                <strong>End Date</strong>
+                            </td>
+                            <td id="AuctionEndDate"> </td>
+                        </tr>
+                        <tr>
+                            <td class="" scope="row">
+                                <strong>Remaining Time</strong>
+                            </td>
+                            <td id="AuctionRemainingTime"></td>
+                        </tr>
+                        <tr>
+                            <td class="" scope="row">
+                                <strong>Description</strong>
+                            </td>
+                            <td id="AuctionDescription"> </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+
+
+            <hr />
+
+            <div class="input-group mb-3" id="BidNowGroup">
+                <input type="number" id="BidAmount" class="form-control" placeholder="Bid Amount">
+                <div class="input-group-text">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="IsAutoBid">
+                        <label class="form-check-label" for="IsAutoBid">Auto Bid</label>
+                    </div>
+                    @*<input class="form-check-input mt-0" type="checkbox" value="" aria-label="Checkbox for following text input">*@
+                </div>
+                <button class='btn btn-primary ' id="BidNowBtn">Bid Now</button>
+            </div>
+        </div>
+
+
+    </div>
+
+    <hr />
+
+    <div class="row">
+        <div class="col-md-12 ">
+
+            <h3 >All Bids</h3>
+
+            <hr />
+            <div class="table-responsive">
+                <table class="table table-sm table-hover table-striped table-bordered w-100 " id="BidsList">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Amount</th>
+
+                        </tr>
+                    </thead>
+
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+
+
+
+
+
+@section scripts {
+
+    <script>
+        $.ajax({
+            url: '/api/Auctions/' + '@Request.QueryString["AuctionID"]',
+            type: 'Get',
+            dataType: 'json',
+            success: function (result) {
+                //console.log(result);
+                document.getElementById("AuctionImage").src = result.Image;
+
+                document.getElementById("AuctionName").innerHTML = result.Name;
+                document.getElementById("AuctionPrice").innerHTML = result.MaxBid == null ? result.Price : result.MaxBid.Amount;
+
+                $("#BidAmount").attr("min", result.MaxBid == null ? result.Price+1 : result.MaxBid.Amount+1);
+
+                document.getElementById("AuctionCreateDate").innerHTML = result.CreateDate;
+                document.getElementById("AuctionEndDate").innerHTML = result.EndDate;
+                //document.getElementById("AuctionRemainingTime").innerHTML = result.RemainingTime;
+                document.getElementById("AuctionDescription").innerHTML = result.Description;
+
+                $('#BidsList').DataTable({
+                    data: result.Bids,
+                    //searching:false,
+                    stateSave: true,
+                    info: false,
+                    lengthChange: false,
+                    responsive: {
+                        details: true
+                    },
+                     language: {
+                        "search": "",
+                    },
+                    columns: [
+                        //{ data: 'ID', orderable: false, searchable: false },
+                        { data: 'UpdateDate', orderable: false  },
+                        { data: 'Amount', orderable: false },
+
+                    ],
+                    initComplete: function (settings, json) {
+                        $(".dataTables_filter").parent().attr("class", "col-12 p-0");
+                        $(".dataTables_filter").children().addClass("w-100 p-1 input-group mb-2");
+                        $("<span class='input-group-text' id='basic-addon1'><i class='fas fa-search'></i></span>").insertBefore($(".dataTables_filter").children().children());
+                        $(".dataTables_filter").children().children().attr("placeholder", "Search");
+                        $(".dataTables_filter").children().children().addClass("m-0");
+                        $(".dataTables_filter").children().children().removeClass("form-control-sm");
+
+                        $("ul.dtr-details>li").addClass("d-flex justify-content-between");
+
+
+
+                    }
+
+                }).order([0, 'desc']);
+
+                myTimer();
+
+
+                var myVar = setInterval(myTimer, 1);
+
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert(thrownError);
+
+            }
+        });
+
+        function myTimer() {
+
+            const EndDate = moment(document.getElementById("AuctionEndDate").innerHTML).format();
+
+            if (moment().format() < EndDate) {
+                document.getElementById("AuctionRemainingTime").innerHTML = moment(EndDate).fromNow();
+ 
+
+            } else {
+                $('#BidNowGroup').remove();
+                document.getElementById("AuctionRemainingTime").innerHTML = "This auction has ended.";
+            }
+
+        };
+
+
+
+
+         $(document).ready(function () {
+             $('#BidNowBtn').click(function () {
+                 var model = {
+                     "AuctionID": @Request.QueryString["AuctionID"],
+                     "ClientID": @Request.Cookies["ClientID"].Value,
+                     "Amount": $("#BidAmount").val(),
+                     "IsAuto": $('#IsAutoBid').is(":checked")
+                         //$("#IsAutoBid").val()
+                 };
+
+                 if (model.AuctionID != "" && model.ClientID != "" && model.Amount != "" && model.Amount >= $("#BidAmount").attr("min")) {
+                    $.ajax({
+                        url: "/api/Bids",
+                        type: "POST",
+                        data: JSON.stringify(model),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function (response) {
+                             var url = '@Url.Action("AuctionDetails", "Home", new { AuctionID = "__id__" })';
+                            window.location.href = url.replace('__id__', model.AuctionID);
+                        },
+                        error: function (xhr, ajaxOptions, thrownError) {
+                            alert(thrownError);
+                        }
+                    });
+
+                } else {
+                    alert('Invalid Data !');
+                }
+
+            });
+        });
+
+
+
+    </script>
+}

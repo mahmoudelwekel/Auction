@@ -1,0 +1,102 @@
+﻿@{
+
+    ViewBag.Title = "Login";
+}
+
+<div class="form-horizontal text-center py-4">
+
+
+
+    <div class="container">
+
+        <div class="row ">
+            <div class="col-md text-center">
+
+
+
+
+            </div>
+            <div class="col-md-5 text-center">
+                <div class="bg-light shadow border rounded-3 fw-bold p-5">
+
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="basic-addon1"><i class="icon fas fa-user"></i></span>
+                        <input id="Username" class="form-control" placeholder="Username" required type="text" autofocus="autofocus" />
+
+
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="basic-addon1"><i class="icon fas fa-lock"></i></span>
+                        <input id="Password" class="form-control" placeholder="Password" required type="password" />
+
+                    </div>
+
+
+                    <input type="submit" id="LoginBtn" value="Login" class="btn btn-primary w-100 " />
+                </div>
+
+            </div>
+            <div class="col-md text-center">
+
+
+
+
+            </div>
+
+        </div>
+    </div>
+
+
+
+</div>
+
+@section scripts {
+
+    <script>
+
+        //$(document).ready(function () {
+
+
+
+        //});
+
+         $(document).ready(function () {
+            $('#LoginBtn').click(function () {
+                var data = {
+                    "username": $("#Username").val(),
+                    "password": $("#Password").val()
+                };
+                var user1 = {
+                    "ID":"1",
+                    "username": "user1",
+                    "password": "user1"
+                };
+                var user2 = {
+                    "ID":"3",
+                    "username": "user2",
+                    "password": "user2"
+                };
+
+                if (data.username != "" && data.password != "") {
+                    if (data.username == user1.username && data.password == user1.password) {
+                        document.cookie = "ClientID=" + user1.ID;
+                            window.location.href = "@Url.Action("AuctionList", "Home")";
+                    } else if (data.username == user2.username && data.password == user2.password) {
+                        document.cookie = "ClientID=" + user2.ID;
+                            window.location.href = "@Url.Action("AuctionList", "Home")";
+                    } else {
+                        $("#Username").focus();
+                        alert('Invalid user data !');
+                    }
+                } else {
+                    $("#Username").focus();
+                    alert('Invalid user data !');
+                }
+
+            });
+        });
+
+
+    </script>
+}
